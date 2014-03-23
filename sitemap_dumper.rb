@@ -2,26 +2,32 @@
 require 'mechanize'
 require 'fileutils'
 require 'uri'
+require 'thwait'
 
 class SitemapDump
     def initialize(url)
-        puts url
         @agent = Mechanize.new 
         @sitemap = @agent.get(url)
     end
 
     def dump 
+        threads = []
         urls.each do |url|
-            dpath = make_dir(url.host, url.path)
-            fpath = File.join(dpath, "index.html")
-            File.open(fpath, 'w') do |file| 
-                puts "Getting url [#{url}] to [#{fpath}]"
-                file.write(@agent.get(url).content) 
-            end 
+            threads << Thread.new{dump_url(url)}
         end
+        ThreadsWait.all_waits(*threads)
     end
 
     private
+    def dump_url(url)
+        dpath = make_dir(url.host, url.path)
+        fpath = File.join(dpath, "index.html")
+        File.open(fpath, 'w') do |file| 
+            file.write(@agent.get(url).content) 
+            puts "Url [#{url}] saved to [#{fpath}]"
+        end 
+    end
+
     def urls
         url_nodes = @sitemap.search("urlset/url/loc") 
         urls = []
