@@ -33,7 +33,7 @@ class  SiteDump
     end
 
     def make_dir(base, path) 
-        dpath = File.join("./#{base}", path)
+        dpath = File.join(Dir.getwd, "#{base}", path)
         FileUtils.mkpath(dpath)
         return dpath
     end
