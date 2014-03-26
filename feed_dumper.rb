@@ -1,14 +1,14 @@
 #!/usr/bin/ruby -w
 require_relative 'SiteDump'
 
-class SitemapDump < SiteDump
+class RssDump < SiteDump
     def initialize(url)
         super(url)
     end
 
     protected
     def urls
-        url_nodes = @sitemap.search("urlset/url/loc") 
+        url_nodes = @sitemap.search("channel/item/link") 
         urls = []
         url_nodes.each do |url|
             urls << URI.parse(url.content)
@@ -18,5 +18,4 @@ class SitemapDump < SiteDump
 end
 
 url = ARGV[0]
-puts SiteDump.inspect
-SitemapDump.new(url).dump()
+RssDump.new(url).dump()
