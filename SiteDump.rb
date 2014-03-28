@@ -5,9 +5,11 @@ require 'uri'
 require 'thwait'
 
 class  SiteDump
-    def initialize(url, use_threads=true)
+    def initialize(url=nil, use_threads=true)
         @agent = Mechanize.new 
-        @sitemap = @agent.get(url)
+        unless url.nil?
+            @sitemap = @agent.get(url)
+        end
         if use_threads
             @dump_fn = self.method(:dump_t)
         else
@@ -38,8 +40,13 @@ class  SiteDump
         dpath = make_dir(url.host, url.path)
         fpath = File.join(dpath, "index.html")
         File.open(fpath, 'w') do |file| 
-            file.write(@agent.get(url).content) 
-            puts "url [#{url}] saved to [#{fpath}]"
+            begin 
+                file.write(@agent.get(url).content) 
+                puts "url [#{url}] saved to [#{fpath}]"
+            rescue Mechanize::ResponseCodeError => e
+                puts e.inspect
+                FileUtils.rm_rf(dpath)
+            end
         end 
     end
 
